@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory | SWAGPH</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+<div class="dashboard-container">
+
+<nav class="sidebar">
+    <div class="sidebar-logo-box">
+        <img src="/assets/SWAGPH.png" class="nav-logo">
+    </div>
+
+    <ul>
+        <li><a href="dashboard.html">Home</a></li>
+        <li><a href="orders.html">Orders</a></li>
+        <li class="active"><a href="inventory.html">Inventory</a></li>
+        <li><a href="finance.html">Finance</a></li>
+        <li><a href="admin.html">Admin Controls</a></li>
+    </ul>
+</nav>
+
+<main class="main-content">
+
+    <div class="top-header">
+        <h1>Inventory</h1>
+        <button class="btn-primary">+ Add Item</button>
+    </div>
+
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Supplier</th>
+                    <th>Stock</th>
+                    <th>Cost</th>
+                    <th>Status</th>
+                    <th class="text-right">Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td>Canvas Tote</td>
+                    <td>Supplier A</td>
+                    <td>450</td>
+                    <td>₱45</td>
+                    <td><span class="badge green">In Stock</span></td>
+                    <td class="text-right"><button class="btn-outline">Order</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+</div>
+
+</body>
+</html>
