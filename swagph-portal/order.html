@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders | SWAGPH Portal</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="dashboard-container">
+
+    <nav class="sidebar">
+        <div class="sidebar-logo-box">
+            <img src="assets/SWAGPH.png" class="nav-logo">
+        </div>
+
+        <ul>
+            <li><a href="dashboard.html">Home</a></li>
+            <li class="active"><a href="order.html">Orders</a></li>
+            <li><a href="inventory.html">Inventory</a></li>
+            <li><a href="finance.html">Finance</a></li>
+            <li><a href="admin.html">Admin Controls</a></li>
+        </ul>
+    </nav>
+
+
+    <main class="main-content">
+        <div class="top-header">
+            <h1>Orders</h1>
+            <button class="btn-primary">+ New Order</button>
+        </div>
+
+
+        <div class="grid-3">
+            <div class="card">
+                <p>Total Orders</p>
+                <h2>24</h2>
+            </div>
+            <div class="card">
+                <p>Completed</p>
+                <h2>16</h2>
+            </div>
+            <div class="card">
+                <p>In Production</p>
+                <h2>8</h2>
+            </div>
+        </div>
+
+        <!-- ORDERS TABLE -->
+        <div class="card table-card">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Client</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th class="text-right">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td><strong>#1001</strong></td>
+                        <td>TechCorp</td>
+                        <td><span class="badge yellow">In Production</span></td>
+                        <td>Mar 25, 2026</td>
+                        <td>₱12,500</td>
+                        <td class="text-right">
+                            <button class="btn-outline">View</button>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>#1002</strong></td>
+                        <td>Alpha Inc.</td>
+                        <td><span class="badge blue">Processing</span></td>
+                        <td>Mar 26, 2026</td>
+                        <td>₱8,200</td>
+                        <td class="text-right">
+                            <button class="btn-outline">View</button>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>#1003</strong></td>
+                        <td>Beta Solutions</td>
+                        <td><span class="badge green">Completed</span></td>
+                        <td>Mar 24, 2026</td>
+                        <td>₱15,000</td>
+                        <td class="text-right">
+                            <button class="btn-outline">View</button>
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </main>
+
+</div>
+
+</body>
+</html>
