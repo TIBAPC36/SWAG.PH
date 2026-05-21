@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | SWAGPH Portal</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px; }
+        .welcome-card { background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px; }
+        .stat-label { font-size: 0.9rem; opacity: 0.9; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-size: 2rem; font-weight: 700; }
+        .action-card { display: flex; align-items: center; justify-content: space-between; padding: 20px; background: white; border-radius: 8px; border: 1px solid #e2e8f0; text-decoration: none; color: inherit; transition: transform 0.2s, box-shadow 0.2s; }
+        .action-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-color: #cbd5e1; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 600; }
+        .badge-review { background: #ffeaa7; color: #d63031; }
+        .badge-production { background: #74b9ff; color: #0984e3; }
+        .badge-completed { background: #55efc4; color: #00b894; }
+    </style>
+</head>
+<body>
+
+<!-- Immediate Security Gate Execution -->
+<script>
+    (function enforceGate() {
+        const sessionRaw = localStorage.getItem('swag_session');
+        if (!sessionRaw) { window.location.href = "login.html"; return; }
+        const session = JSON.parse(sessionRaw);
+        if (session.role !== 'CLIENT') { window.location.href = "login.html"; }
+    })();
+</script>
+
+<div class="dashboard-container">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="sidebar-logo-box">
+            <img src="assets/SWAGPH.png" class="nav-logo" alt="SWAGPH Logo">
+        </div>
+        <ul>
+            <li class="active"><a href="client-dashboard.html">My Dashboard</a></li>
+            <li><a href="client-orders.html">My Purchases</a></li>
+            <li><a href="client-order-request.html">New Request</a></li>
+            <li><a href="client-profile.html">Account Profile</a></li>
+            <li><a href="#" id="logout-btn" style="color:#ff7675;">Logout</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Dashboard Workspace Area -->
+    <main class="main-content" style="padding: 30px;">
+        <!-- Welcome Jumbotron -->
+        <div class="welcome-card">
+            <h1 style="margin-bottom: 8px; font-weight: 600;">Greetings, <span id="client-welcome-name">Customer</span>!</h1>
+            <p style="opacity: 0.9; font-size: 1rem;">Welcome to your SWAGPH hub. Track ongoing design print lines, look up invoices, or file new manufacturing requests.</p>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="grid-2">
+            <div class="card" style="border-left: 5px solid #3498db;">
+                <p class="stat-label" style="color: #64748b;">Active Production Runs</p>
+                <h2 class="stat-value" id="client-active-count" style="color: #1e293b;">0</h2>
+            </div>
+            <div class="card" style="border-left: 5px solid #2ecc71;">
+                <p class="stat-label" style="color: #64748b;">Total Value Fulfilled</p>
+                <h2 class="stat-value" id="client-total-spent" style="color: #1e293b;">₱0.00</h2>
+            </div>
+        </div>
+
+        <h3 style="margin-bottom: 15px; color: #1e293b; font-weight: 600;">Quick Actions</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px;">
+            <a href="client-order-request.html" class="action-card">
+                <div>
+                    <h4 style="margin-bottom: 4px; font-weight: 600;">Request New Project</h4>
+                    <p style="font-size: 0.85rem; color: #64748b;">Submit layout details for vinyl or embroidery runs.</p>
+                </div>
+                <span style="font-size: 1.5rem; color: #3498db;">&rarr;</span>
+            </a>
+            <a href="client-orders.html" class="action-card">
+                <div>
+                    <h4 style="margin-bottom: 4px; font-weight: 600;">View Order Slips</h4>
+                    <p style="font-size: 0.85rem; color: #64748b;">Review ongoing jobs and final price determinations.</p>
+                </div>
+                <span style="font-size: 1.5rem; color: #2ecc71;">&rarr;</span>
+            </a>
+        </div>
+
+        <!-- Recent Activities Box -->
+        <div class="card table-card">
+            <h3 style="padding: 20px 20px 10px 20px; color: #1e293b; font-weight: 600;">Recent Order Slips</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Slip No.</th>
+                        <th>Specifications Summary</th>
+                        <th>Current Progress State</th>
+                        <th>Total Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="client-recent-table-body">
+                    <!-- JS will append latest rows here -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+    <head>
+    <meta charset="UTF-8">
+    <title>SWAGPH - Client Dashboard</title>
+    <!-- Load the session guard first thing -->
+    <script src="js/guard.js"></script>
+    <!-- Other assets -->
+    
+</head>
+</div>
+
+<script src="js/client-dashboard.js"></script>
+</body>
+</html>

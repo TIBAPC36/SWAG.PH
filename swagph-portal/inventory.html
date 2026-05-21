@@ -1,65 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Inventory | SWAGPH</title>
-<link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory | SWAGPH Portal</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Safety layer to guarantee the display toggles cleanly without layout thrashing */
+        .modal-backdrop {
+            display: none; 
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+    </style>
 </head>
-
 <body>
 
 <div class="dashboard-container">
 
-<nav class="sidebar">
-    <div class="sidebar-logo-box">
-        <img src="assets/SWAGPH.png" class="nav-logo">
-    </div>
+    <!-- Navigation Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-logo-box">
+            <img src="assets/SWAGPH.png" class="nav-logo" alt="SWAGPH Logo">
+        </div>
+        <ul>
+            <li><a href="dashboard.html">Home</a></li>
+            <li><a href="order.html">Orders</a></li>
+            <li class="active"><a href="inventory.html">Inventory</a></li>
+            <li><a href="finance.html">Finance</a></li>
+            <li><a href="admin.html">Admin Controls</a></li>
+        </ul>
+    </nav>
 
-    <ul>
-        <li><a href="dashboard.html">Home</a></li>
-        <li class="active"><a href="inventory.html">Inventory</a></li>
-        <li><a href="finance.html">Finance</a></li>
-        <li><a href="admin.html">Admin Controls</a></li>
-        <li><a href="order.html">Orders</a></li>
-    </ul>
-</nav>
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="top-header">
+            <h1>Warehouse & Raw Materials Inventory</h1>
+            <button class="btn-primary" id="add-stock-btn">+ Add Stock Item</button>
+        </div>
 
-<main class="main-content">
+        <!-- Inventory Metrics Summary -->
+        <div class="grid-3">
+            <div class="card">
+                <p>Total Unique SKUs</p>
+                <h2 id="total-skus-count">0</h2>
+            </div>
+            <div class="card alert-card">
+                <p>Critical Low Stock Alerts</p>
+                <h2 id="low-stock-count" class="text-danger">0</h2>
+            </div>
+            <div class="card">
+                <p>Total Asset Valuation</p>
+                <h2 id="total-valuation">₱0.00</h2>
+            </div>
+        </div>
 
-    <div class="top-header">
-        <h1>Inventory</h1>
-        <button class="btn-primary">+ Add Item</button>
-    </div>
+        <!-- Inventory Data Grid -->
+        <div class="card table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>SKU ID</th>
+                        <th>Item Name</th>
+                        <th>Category</th>
+                        <th>Available Stock</th>
+                        <th>Unit Cost</th>
+                        <th>Total Value</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-table-body">
+                    <!-- Dynamic inventory rows injected via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </main>
 
-    <div class="card">
-        <table>
-            <thead>
-                <tr>
-                    <th>Item</th>
-                    <th>Supplier</th>
-                    <th>Stock</th>
-                    <th>Cost</th>
-                    <th>Status</th>
-                    <th class="text-right">Action</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                <tr>
-                    <td>Canvas Tote</td>
-                    <td>Supplier A</td>
-                    <td>450</td>
-                    <td>₱45</td>
-                    <td><span class="badge green">In Stock</span></td>
-                    <td class="text-right"><button class="btn-outline">Order</button></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-</main>
 </div>
 
+<!-- Consolidated Register New Material SKU Modal Overlay -->
+<div id="stock-modal" class="modal-backdrop">
+    <div class="modal-surface-card">
+        <button id="close-stock-modal" class="modal-dismiss-control" type="button">&times;</button>
+        <h2 class="modal-headline">Register Material SKU</h2>
+        
+        <form id="inventory-form">
+            <div class="field-group">
+                <label class="field-label">Item Description Name</label>
+                <input type="text" name="name" class="field-input" placeholder="e.g., Blank Roundneck T-Shirt (White)" required>
+            </div>
+            
+            <div class="field-group">
+                <label class="field-label">Category</label>
+                <select name="category" class="field-select">
+                    <option value="Apparel">Apparel / Garments</option>
+                    <option value="Bags">Bags & Totes</option>
+                    <option value="Consumables">Consumables (Inks/Films)</option>
+                    <option value="Packaging">Packaging Supplies</option>
+                </select>
+            </div>
+            
+            <div class="field-split-row">
+                <div class="field-group">
+                    <label class="field-label">Initial Stock Qty</label>
+                    <input type="number" name="stock" class="field-input" min="0" value="0" required>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Safety Threshold</label>
+                    <input type="number" name="min_required" class="field-input" min="0" placeholder="Min safety level" required>
+                </div>
+            </div>
+            
+            <div class="field-group">
+                <label class="field-label">Unit Cost Price (₱)</label>
+                <input type="number" name="unit_cost" class="field-input" step="0.01" min="0" placeholder="0.00" required>
+            </div>
+            
+            <button type="submit" class="btn-primary modal-submit-action">Save to Database</button>
+        </form>
+    </div>
+</div>
+
+<script src="js/inventory.js"></script>
 </body>
 </html>

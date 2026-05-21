@@ -9,6 +9,14 @@
 <body>
 
 <div class="login-container">
+    <div class="login-visual">
+        <div class="overlay">
+            <div class="visual-content">
+                <h2></h2>
+                <p></p>
+            </div>
+        </div>
+    </div>
     <div class="login-form-section">
         <div class="form-wrapper">
             <img src="assets/SWAGPH.png" class="nav-logo" alt="logo">
@@ -16,17 +24,28 @@
             <h3>Welcome Back</h3>
             <p>Enter your credentials</p>
 
-            <form action="dashboard.html">
-                <input type="email" placeholder="Email" required>
-                <input type="password" placeholder="Password" required>
-                <button class="btn-primary">Login</button>
-                <button class="btn-primary">Signup
-        
-                </button>
+            <form id="login-form" autocomplete="off">
+                <div class="input-group">
+                    <input type="email" id="email" placeholder="Email" autocomplete="username" required>
+                    <div id="email-error" class="error-message"></div>
+                </div>
+                <div class="input-group" style="position:relative;">
+                    <input type="password" id="password" placeholder="Password" autocomplete="current-password" required>
+                    <span id="toggle-password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;user-select:none;">👁️</span>
+                    <div id="password-error" class="error-message"></div>
+                </div>
+                <div id="login-failed" class="error-message" style="color:#e74c3c;text-align:center;margin-bottom:10px;display:none;"></div>
+                <button type="submit" id="login-btn" class="btn-primary" disabled>Login</button>
+                
+                <!-- NEW SECTION: Navigation Link to Register Page -->
+                <div style="text-align: center; margin-top: 20px; font-size: 14px; color: #64748b;">
+                    Don't have an account? <a href="register.html" style="color: #3b82f6; text-decoration: none; font-weight: 600;">Register here</a>
+                </div>
             </form>
         </div>
     </div>
 </div>
 
+<script src="js/login.js"></script>
 </body>
 </html>

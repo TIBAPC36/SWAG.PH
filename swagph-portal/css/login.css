@@ -19,7 +19,7 @@
 /* LEFT SIDE VISUAL */
 .login-visual {
     flex: 1;
-    background-image: url('https://images.unsplash.com/photo-1572021335469-31706a17aaef?auto=format&fit=crop&q=80&w=2070');
+    background-image: url('../assets/SWAGBG.png');
     background-size: cover;
     background-position: center;
     display: none;
@@ -32,7 +32,7 @@
 }
 
 .overlay {
-    background: rgba(44, 62, 80, 0.85);
+    background: transparent;
     height: 100%;
     display: flex;
     align-items: center;
@@ -80,7 +80,7 @@
 
 /* INPUTS */
 .login-form-section .input-group {
-    margin-bottom: 18px;
+    margin-bottom: 10px;
 }
 
 .login-form-section label {
@@ -179,4 +179,26 @@
     color: #3498db;
     text-decoration: none;
     font-weight: bold;
+}
+
+/* ERROR MESSAGE */
+.error-message {
+    font-size: 0.95em;
+    color: #e74c3c;
+    min-height: 18px;
+    margin: 2px 0 8px 2px;
+}
+
+/* SHAKE ANIMATION FOR LOGIN FAILURE */
+@keyframes shake {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-8px); }
+    80% { transform: translateX(8px); }
+    100% { transform: translateX(0); }
+}
+
+.shake {
+    animation: shake 0.5s;
 }

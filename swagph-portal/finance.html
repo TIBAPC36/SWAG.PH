@@ -1,44 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Finance | SWAGPH</title>
-<link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Ledger | SWAGPH Portal</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
 
 <div class="dashboard-container">
 
-<nav class="sidebar">
-    <div class="sidebar-logo-box">
-        <img src="assets/SWAGPH.png" class="nav-logo">
-    </div>
+    <nav class="sidebar">
+        <div class="sidebar-logo-box">
+            <img src="assets/SWAGPH.png" class="nav-logo">
+        </div>
+        <ul>
+            <li><a href="dashboard.html">Home</a></li>
+            <li><a href="order.html">Orders</a></li>
+            <li><a href="inventory.html">Inventory</a></li>
+            <li class="active"><a href="finance.html">Finance</a></li>
+            <li><a href="admin.html">Admin Controls</a></li>
+        </ul>
+    </nav>
 
-    <ul>
-        <li><a href="dashboard.html">Home</a></li>
-        <li><a href="inventory.html">Inventory</a></li>
-        <li class="active"><a href="finance.html">Finance</a></li>
-        <li><a href="admin.html">Admin Controls</a></li>
-        <li><a href="order.html">Orders</a></li>
-    </ul>
-</nav>
+    <main class="main-content">
+        <div class="top-header">
+            <h1>Financial Performance & General Ledger</h1>
+            <button class="btn-primary" id="add-expense-btn">+ Log Expense</button>
+        </div>
 
-<main class="main-content">
+        <div class="grid-3">
+            <div class="card">
+                <p>Gross Revenue</p>
+                <h2 id="total-revenue" style="color: #0f172a;">₱0.00</h2>
+                <small style="color: #64748b;">Total order book allocations</small>
+            </div>
+            <div class="card">
+                <p>Total Expenses</p>
+                <h2 id="total-expenses" style="color: #dc2626;">₱0.00</h2>
+                <small style="color: #64748b;">Material restocks & overhead</small>
+            </div>
+            <div class="card">
+                <p>Net Profit Margin</p>
+                <h2 id="net-profit" style="color: #16a34a;">₱0.00</h2>
+                <small style="color: #64748b;">Take-home revenue capture</small>
+            </div>
+        </div>
 
-    <div class="top-header">
-        <h1>Finance</h1>
-    </div>
+        <div class="card table-card">
+            <div style="padding: 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 1.1rem; color: #0f172a;">Recent Cash Flow Postings</h3>
+                <span style="font-size: 0.85rem; color: #64748b; font-weight: 500;">Real-time Ledger Sync</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Reference ID</th>
+                        <th>Posting Date</th>
+                        <th>Description / Account Line</th>
+                        <th>Type</th>
+                        <th class="text-right">Transaction Value</th>
+                    </tr>
+                </thead>
+                <tbody id="finance-table-body">
+                    </tbody>
+            </table>
+        </div>
+    </main>
 
-    <div class="grid-3">
-        <div class="card"><p>Revenue</p><h2>₱250,000</h2></div>
-        <div class="card"><p>Treasury</p><h2>₱25,000</h2></div>
-        <div class="card"><p>Tax</p><h2>₱25,000</h2></div>
-    </div>
-
-</main>
 </div>
 
+<div id="expense-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-surface-card">
+        <button id="close-expense-modal" class="modal-dismiss-control">&times;</button>
+        <h2 class="modal-headline">Record Operating Expense</h2>
+        
+        <form id="expense-form">
+            <div class="field-group">
+                <label class="field-label">Expense Description Account Name</label>
+                <input type="text" name="description" class="field-input" placeholder="e.g., Monthly Workshop Rental, FB Ad Spend" required>
+            </div>
+            
+            <div class="field-group">
+                <label class="field-label">Expense Category Line</label>
+                <select name="category" class="field-select">
+                    <option value="Overhead">Overhead & Utilities</option>
+                    <option value="Marketing">Marketing & Advertisements</option>
+                    <option value="Logistics">Logistics & Outbound Delivery</option>
+                    <option value="Equipments">Equipment & Workshop Tools</option>
+                </select>
+            </div>
+            
+            <div class="field-group">
+                <label class="field-label">Disbursement Amount (₱)</label>
+                <input type="number" name="amount" class="field-input" step="0.01" min="0.01" placeholder="0.00" required>
+            </div>
+            
+            <button type="submit" class="btn-primary modal-submit-action" style="background-color: #dc2626; border-color: #dc2626;">Post Expense Line</button>
+        </form>
+    </div>
+</div>
+
+<script src="js/finance.js"></script>
 </body>
 </html>

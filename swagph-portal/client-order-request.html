@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Custom Swag | SWAGPH</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .form-card { max-width: 650px; margin-top: 20px; }
+        .form-group { margin-bottom: 20px; display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-weight: 600; color: #475569; font-size: 0.9rem; }
+        .form-group input, .form-group textarea, .form-group select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; font-family: inherit; }
+        .form-group textarea { resize: vertical; min-height: 100px; }
+        .btn-primary { background: #3498db; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 1rem; }
+        .btn-primary:hover { background: #2980b9; }
+        .alert-info { background-color: #e0f2fe; border-left: 4px solid #0284c7; color: #0369a1; padding: 15px; border-radius: 4px; margin-bottom: 20px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<!-- Immediate Security Gate Execution -->
+<script>
+    (function enforceGate() {
+        const sessionRaw = localStorage.getItem('swag_session');
+        if (!sessionRaw) { window.location.href = "login.html"; return; }
+        const session = JSON.parse(sessionRaw);
+        if (session.role !== 'CLIENT') { window.location.href = "login.html"; }
+    })();
+</script>
+
+<div class="dashboard-container">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="sidebar-logo-box">
+            <img src="assets/SWAGPH.png" class="nav-logo" alt="logo">
+        </div>
+        <ul>
+            <li><a href="client-dashboard.html">My Dashboard</a></li>
+            <li><a href="client-orders.html">My Purchases</a></li>
+            <li class="active"><a href="client-order-request.html">New Request</a></li>
+            <li><a href="client-profile.html">Account Profile</a></li>
+            <li><a href="#" id="logout-btn" style="color:#ff7675;">Logout</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content Workspace Area -->
+    <main class="main-content" style="padding: 30px;">
+        <div class="top-header" style="margin-bottom: 30px;">
+            <h1>Request a Production Quote</h1>
+            <p class="text-muted">Submit your merchandise specs. Our production team will review material options and update your quote pricing.</p>
+        </div>
+
+        <div class="card form-card">
+            <div class="alert-info">
+                <strong>Process Note:</strong> Submitted requests are saved as initial drafts. An administrator will verify warehouse raw fabric stocks, validate artwork constraints, assign your final pricing, and activate the order.
+            </div>
+
+            <form id="order-request-form">
+                <div class="form-group">
+                    <label for="req-details">Order Details Summary</label>
+                    <input type="text" id="req-details" required placeholder="e.g. 100pcs Black Roundneck T-Shirts (50 M, 50 L)">
+                </div>
+
+                <div class="form-group">
+                    <label for="req-notes">Design Specifications & Special Instructions</label>
+                    <textarea id="req-notes" required placeholder="Provide item requirements (e.g., 'Gold rubberized vinyl print on center chest, cotton-combed fabric preferred')."></textarea>
+                </div>
+
+                <div style="margin-top: 25px; text-align: right;">
+                    <button type="submit" class="btn-primary">Submit Order Request</button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<!-- Connect System Controller Logic Scripts -->
+<script src="js/client-order-request.js"></script>
+</body>
+</html>

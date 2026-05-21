@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders | SWAGPH Portal</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 600; display: inline-block; }
+        .badge-review { background: #ffeaa7; color: #d63031; }
+        .badge-production { background: #74b9ff; color: #0984e3; }
+        .badge-completed { background: #55efc4; color: #00b894; }
+        .text-right { text-align: right; }
+        .no-data-msg { text-align: center; color: #64748b; padding: 40px 20px; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<!-- Security Gate Hook Execution -->
+<script>
+    (function enforceGate() {
+        const sessionRaw = localStorage.getItem('swag_session');
+        if (!sessionRaw) { window.location.href = "login.html"; return; }
+        const session = JSON.parse(sessionRaw);
+        if (session.role !== 'CLIENT') { window.location.href = "login.html"; }
+    })();
+</script>
+
+<div class="dashboard-container">
+    <!-- Sidebar Navigation Controls -->
+    <nav class="sidebar">
+        <div class="sidebar-logo-box">
+            <img src="assets/SWAGPH.png" class="nav-logo" alt="SWAGPH Logo">
+        </div>
+        <ul>
+            <li><a href="client-dashboard.html">My Dashboard</a></li>
+            <li class="active"><a href="client-orders.html">My Purchases</a></li>
+            <li><a href="client-order-request.html">New Request</a></li>
+            <li><a href="client-profile.html">Account Profile</a></li>
+            <li><a href="#" id="logout-btn" style="color:#ff7675;">Logout</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Table Viewport Workspace -->
+    <main class="main-content" style="padding: 30px;">
+        <div class="top-header" style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1>My Order History</h1>
+                <p class="text-muted">Track production milestones, design configurations, and verified pricing totals.</p>
+            </div>
+            <button class="btn-primary" onclick="window.location.href='client-order-request.html'">+ Request New Swag</button>
+        </div>
+
+        <div class="card table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Slip No.</th>
+                        <th>Order Specifications</th>
+                        <th>Status</th>
+                        <th>Placement Date</th>
+                        <th class="text-right">Total Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="client-orders-table-body">
+                    <!-- JavaScript will dynamically render client history rows here -->
+                </tbody>
+            </table>
+            <div id="no-orders-container"></div>
+        </div>
+    </main>
+</div>
+
+<script src="js/client-orders.js"></script>
+</body>
+</html>

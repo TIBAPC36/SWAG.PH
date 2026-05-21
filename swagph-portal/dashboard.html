@@ -1,57 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard | SWAGPH</title>
-<link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | SWAGPH</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
 
 <div class="dashboard-container">
 
-    <!-- Sidebar -->
     <nav class="sidebar">
         <div class="sidebar-logo-box">
-            <img src="assets/SWAGPH.png" class="nav-logo">
+            <img src="assets/SWAGPH.png" class="nav-logo" alt="SWAGPH Logo">
         </div>
 
         <ul>
             <li class="active"><a href="dashboard.html">Home</a></li>
+            <li><a href="order.html">Orders</a></li>
             <li><a href="inventory.html">Inventory</a></li>
             <li><a href="finance.html">Finance</a></li>
-            <li><a href="admin.html">Admin Controls</a></li>
-             <li><a href="order.html">Orders</a></li>
+            <li><a href="admin.html">Settings</a></li>
+            <li><a href="#" id="logout-btn" style="color: #e74c3c;">Logout</a></li>
         </ul>
     </nav>
 
-    <!-- Main -->
     <main class="main-content">
-
+        
         <div class="top-header">
-            <h1>Dashboard</h1>
+            <div class="header-titles">
+                <h1>Dashboard</h1>
+                <p class="welcome-text" id="welcome-partner">Welcome back, Partner</p>
+            </div>
+            <div class="header-actions">
+                <input type="text" placeholder="Search orders..." class="search-bar" id="order-search">
+                <span class="dashboard-date" id="current-date">March 27, 2026</span>
+            </div>
         </div>
 
         <div class="grid-3">
-            <div class="card">
-                <p>Active Orders</p>
-                <h2>18</h2>
+            <div class="card card-blue-border">
+                <span class="card-label">Active Orders</span>
+                <h2 id="stat-active-orders">0</h2>
             </div>
 
-            <div class="card">
-                <p>Revenue</p>
-                <h2>₱145,200</h2>
+            <div class="card card-green-border">
+                <span class="card-label">Monthly Revenue</span>
+                <h2 id="stat-monthly-revenue">₱0</h2>
             </div>
 
-            <div class="card">
-                <p>Suppliers</p>
-                <h2>5</h2>
+            <div class="card card-light-blue-border">
+                <span class="card-label">Pending Suppliers</span>
+                <h2 id="stat-pending-suppliers">0</h2>
+            </div>
+        </div>
+
+        <div class="card activity-card" style="margin-top: 24px;">
+            <h3>Recent Activity</h3>
+            <div class="activity-timeline" id="activity-timeline-feed">
+                <div class="activity-placeholder-text">Loading workspace activity logs...</div>
             </div>
         </div>
 
     </main>
 </div>
 
+<script src="js/dashboard.js"></script>
 </body>
 </html>

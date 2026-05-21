@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orders | SWAGPH Portal</title>
+    <title>Order Management | SWAGPH Portal</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <div class="dashboard-container">
 
+    <!-- Navigation Sidebar -->
     <nav class="sidebar">
         <div class="sidebar-logo-box">
             <img src="assets/SWAGPH.png" class="nav-logo">
         </div>
-
         <ul>
             <li><a href="dashboard.html">Home</a></li>
             <li class="active"><a href="order.html">Orders</a></li>
@@ -24,89 +24,97 @@
         </ul>
     </nav>
 
-
+    <!-- Main Content Area -->
     <main class="main-content">
         <div class="top-header">
-            <h1>Orders</h1>
-            <button class="btn-primary">+ New Order</button>
+            <h1>Sales Invoices & Order Fulfillment</h1>
+            <button class="btn-primary" id="add-order-btn">+ Create Sales Order</button>
         </div>
 
-
+        <!-- Orders Dashboard Metrics Grid -->
         <div class="grid-3">
             <div class="card">
-                <p>Total Orders</p>
-                <h2>24</h2>
+                <p>Active Production Queue</p>
+                <h2 id="pending-orders-count" style="color: #ea580c;">0</h2>
+                <small style="color: #64748b;">Awaiting processing or print</small>
             </div>
             <div class="card">
-                <p>Completed</p>
-                <h2>16</h2>
+                <p>Fulfilled Orders (Month)</p>
+                <h2 id="completed-orders-count" style="color: #16a34a;">0</h2>
+                <small style="color: #64748b;">Successfully shipped out</small>
             </div>
             <div class="card">
-                <p>In Production</p>
-                <h2>8</h2>
+                <p>Gross Pipeline Value</p>
+                <h2 id="order-pipeline-value" style="color: #0f172a;">₱0.00</h2>
+                <small style="color: #64748b;">Combined open invoice totals</small>
             </div>
         </div>
 
-        <!-- ORDERS TABLE -->
+        <!-- Sales Order Master Data Grid -->
         <div class="card table-card">
-
             <table>
-
                 <thead>
                     <tr>
-                        <th>Order ID</th>
-                        <th>Client</th>
+                        <th>Invoice No.</th>
+                        <th>Order Date</th>
+                        <th>Customer / Client Destination</th>
+                        <th>Item Allocated</th>
+                        <th>Order Volume</th>
+                        <th>Total Amount</th>
                         <th>Status</th>
-                        <th>Date</th>
-                        <th>Amount</th>
-                        <th class="text-right">Action</th>
+                        <th class="text-right">Actions</th>
                     </tr>
                 </thead>
-
-                <tbody>
-
-                    <tr>
-                        <td><strong>#1001</strong></td>
-                        <td>TechCorp</td>
-                        <td><span class="badge yellow">In Production</span></td>
-                        <td>Mar 25, 2026</td>
-                        <td>₱12,500</td>
-                        <td class="text-right">
-                            <button class="btn-outline">View</button>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td><strong>#1002</strong></td>
-                        <td>Alpha Inc.</td>
-                        <td><span class="badge blue">Processing</span></td>
-                        <td>Mar 26, 2026</td>
-                        <td>₱8,200</td>
-                        <td class="text-right">
-                            <button class="btn-outline">View</button>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td><strong>#1003</strong></td>
-                        <td>Beta Solutions</td>
-                        <td><span class="badge green">Completed</span></td>
-                        <td>Mar 24, 2026</td>
-                        <td>₱15,000</td>
-                        <td class="text-right">
-                            <button class="btn-outline">View</button>
-                        </td>
-                    </tr>
-
+                <tbody id="orders-table-body">
+                    <!-- Dynamic client invoice streams injected via JavaScript -->
                 </tbody>
-
             </table>
-
         </div>
-
     </main>
 
 </div>
 
+<!-- Create Sales Order Modal Overlay -->
+<div id="order-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-surface-card">
+        <button id="close-order-modal" class="modal-dismiss-control">&times;</button>
+        <h2 class="modal-headline">Create New Sales Invoice</h2>
+        
+        <form id="order-form">
+            <div class="field-group">
+                <label class="field-label">Customer / Client Email</label>
+                <input type="email" name="customer_email" class="field-input" placeholder="client@company.com" required>
+            </div>
+            
+            <div class="field-group">
+                <label class="field-label">Select Material SKU to Allocate</label>
+                <select name="item_sku" id="modal-sku-select" class="field-select" required>
+                    <!-- Options populated dynamically from your real Inventory database stock -->
+                </select>
+            </div>
+            
+            <div class="field-split-row">
+                <div class="field-group">
+                    <label class="field-label">Order Quantity (Units)</label>
+                    <input type="number" name="quantity" id="modal-quantity-input" class="field-input" min="1" value="1" required>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Custom Unit Price (₱)</label>
+                    <input type="number" name="unit_price" id="modal-price-input" class="field-input" step="0.01" min="0" placeholder="Override base cost" required>
+                </div>
+            </div>
+
+            <!-- Dynamic cost summary block info -->
+            <div style="background: #f8fafc; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 0.9rem; border: 1px solid #e2e8f0;">
+                <span style="color: #64748b; font-weight: 500;">Calculated Invoice Subtotal:</span>
+                <strong id="invoice-preview-total" style="float: right; color: #0f172a;">₱0.00</strong>
+            </div>
+            
+            <button type="submit" class="btn-primary modal-submit-action">Book Sales Invoice</button>
+        </form>
+    </div>
+</div>
+
+<script src="js/order.js"></script>
 </body>
 </html>
