@@ -21,12 +21,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const details = document.getElementById('req-details').value.trim();
-            const notes = document.getElementById('req-notes').value.trim();
+            // Safe element data-value extractions with string fallback guards
+            const detailsEl = document.getElementById('req-details');
+            const notesEl = document.getElementById('req-notes');
+            
+            const details = detailsEl ? detailsEl.value.trim() : '';
+            const notes = notesEl ? notesEl.value.trim() : '';
 
-            // Open operational data storage structures
-            let systemTable = JSON.parse(localStorage.getItem('system_table'));
+            // Open operational data storage structures with fallback protection
             let orderTable = JSON.parse(localStorage.getItem('order_table')) || [];
+            let systemTable = JSON.parse(localStorage.getItem('system_table'));
+            
+            // Crash Prevention Guard: If system configuration doesn't exist yet, seed it immediately
+            if (!systemTable) {
+                systemTable = {
+                    sysorder_lno: "000000",
+                    sysdate: new Date().toLocaleDateString(),
+                    systime: new Date().toLocaleTimeString()
+                };
+            }
 
             // --- COUNTER INCREMENT REGISTRY ENGINE (sysorder_lno) ---
             // Acknowledge the last order sequence string and convert to integer base-10 calculation
@@ -46,11 +59,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- ASSEMBLE SYSTEM RECORD PACKET COMPONENT ---
             const newOrderRecord = {
                 o_no: paddedOrderNo,                       // Generated reference number mapping key
-                o_custid: session.id,                     // Client customer reference identifier tracking index
+                o_custid: session.email,                  // Synchronized to match the client's email identity tracking index
                 o_details: details,                       // Item sizing descriptions
                 o_notes: notes,                           // Specialized printing style comments text
                 o_amount: 0.00,                           // Set to flat zero. Handled by Admin valuation review later.
-                o_status: "Pending Review",               // System initial status draft value 
+                o_status: "PENDING",                      // Unified baseline system status string matching global dashboards
                 o_date: new Date().toLocaleDateString()   // Capture date marker
             };
 

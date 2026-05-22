@@ -34,22 +34,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // Metrics
     const totalSkusEl = document.getElementById('total-skus-count');
     const valuationEl = document.getElementById('total-valuation');
+    const lowStockEl = document.getElementById('low-stock-count'); 
 
     // =========================
-    // RENDER INVENTORY TABLE
+    // RENDER INVENTORY BOARD
     // =========================
     function renderInventoryBoard() {
         const inventory = JSON.parse(localStorage.getItem('inventory_table')) || [];
-        tableBody.innerHTML = '';
+        if (tableBody) tableBody.innerHTML = '';
 
         let totalSKUs = inventory.length;
         let totalAssetValuation = 0;
+        let lowStockCount = 0; 
 
         // Empty State
-        if (inventory.length === 0) {
+        if (inventory.length === 0 && tableBody) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="6" style="text-align:center; padding:30px; color:#64748b; font-style:italic;">
+                    <td colspan="7" style="text-align:center; padding:30px; color:#64748b; font-style:italic;">
                         No materials registered in inventory.
                     </td>
                 </tr>
@@ -61,67 +63,79 @@ document.addEventListener('DOMContentLoaded', () => {
             const itemTotalValue = parseFloat(item.stock || 0) * parseFloat(item.unit_cost || 0);
             totalAssetValuation += itemTotalValue;
 
-            const tr = document.createElement('tr');
+            // Check if current stock hits or drops below safety threshold
+            const minRequired = parseInt(item.min_required, 10) || 0;
+            const isLowStock = parseInt(item.stock, 10) <= minRequired;
 
-            tr.innerHTML = `
-                <td>
-                    <strong>${item.id}</strong>
-                </td>
-                <td>
-                    <strong>${item.name}</strong><br>
-                    <small style="color:#64748b;">
-                        Updated: ${item.last_updated || 'N/A'}
-                    </small>
-                </td>
-                <td>
-                    <span class="badge-neutral">
-                        ${item.category}
-                    </span>
-                </td>
-                <td>
-                    <span style="font-weight:700; color:#2d3436;">
-                        ${item.stock} units
-                    </span>
-                </td>
-                <td>
-                    ₱${parseFloat(item.unit_cost || 0).toFixed(2)}
-                </td>
-                <td>
-                    <strong>
-                        ₱${itemTotalValue.toLocaleString('en-PH', {
-                            minimumFractionDigits: 2
-                        })}
-                    </strong>
-                </td>
-                <td class="text-right" style="white-space:nowrap;">
-                    <button
-                        type="button"
-                        class="btn-secondary restock-btn"
-                        data-id="${item.id}"
-                        style="padding:6px 12px; font-size:0.85rem; cursor:pointer; margin-right:5px;"
-                    >
-                        Restock
-                    </button>
-                    <button
-                        type="button"
-                        class="delete-btn"
-                        data-id="${item.id}"
-                        style="color:#e74c3c; background:none; border:none; font-size:1.1rem; cursor:pointer; padding:4px 8px;"
-                        title="Delete Item"
-                    >
-                        🗑️
-                    </button>
-                </td>
-            `;
+            if (isLowStock) {
+                lowStockCount++;
+            }
 
-            tableBody.appendChild(tr);
+            if (tableBody) {
+                const tr = document.createElement('tr');
+                
+                // Soft background tint for clear visibility on critical items
+                if (isLowStock) {
+                    tr.style.backgroundColor = '#fff5f5';
+                }
+
+                tr.innerHTML = `
+                    <td>
+                        <strong>${item.id}</strong>
+                    </td>
+                    <td>
+                        <strong>${item.name || 'Unnamed Item'}</strong><br>
+                        <small style="color:#64748b;">
+                            Updated: ${item.last_updated || 'N/A'}
+                        </small>
+                    </td>
+                    <td>
+                        <span class="badge-neutral">
+                            ${item.category || 'General'}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="font-weight:700; color:${isLowStock ? '#e74c3c' : '#2d3436'};">
+                            ${item.stock} units ${isLowStock ? '⚠️' : ''}
+                        </span>
+                    </td>
+                    <td>
+                        ₱${parseFloat(item.unit_cost || 0).toFixed(2)}
+                    </td>
+                    <td>
+                        <strong>
+                            ₱${itemTotalValue.toLocaleString('en-PH', {
+                                minimumFractionDigits: 2
+                            })}
+                        </strong>
+                    </td>
+                    <td class="text-right" style="white-space:nowrap;">
+                        <button
+                            type="button"
+                            class="btn-secondary restock-btn"
+                            data-id="${item.id}"
+                            style="padding:6px 12px; font-size:0.85rem; cursor:pointer; margin-right:5px;"
+                        >
+                            Restock
+                        </button>
+                        <button
+                            type="button"
+                            class="delete-btn"
+                            data-id="${item.id}"
+                            style="color:#e74c3c; background:none; border:none; font-size:1.1rem; cursor:pointer; padding:4px 8px;"
+                            title="Delete Item"
+                        >
+                            🗑️
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            }
         });
 
-        // Update Panel Metrics
-        if (totalSkusEl) {
-            totalSkusEl.innerText = totalSKUs;
-        }
-
+        // Update Panel Metrics Safely
+        if (totalSkusEl) totalSkusEl.innerText = totalSKUs;
+        if (lowStockEl) lowStockEl.innerText = lowStockCount;
         if (valuationEl) {
             valuationEl.innerText = `₱${totalAssetValuation.toLocaleString('en-PH', {
                 minimumFractionDigits: 2
@@ -130,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
-    // EVENT DELEGATION
+    // EVENT DELEGATION (FIXED ATTR SEARCH)
     // =========================
     if (tableBody) {
         tableBody.addEventListener('click', (e) => {
@@ -138,12 +152,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- RESTOCK BUTTON TRIGGER ---
             const restockBtn = e.target.closest('.restock-btn');
             if (restockBtn) {
-                const skuId = restockBtn.dataset.id;
+                const skuId = String(restockBtn.dataset.id).trim(); // 👈 Fixed: Cast explicitly to string
                 let inventory = JSON.parse(localStorage.getItem('inventory_table')) || [];
-                const itemIndex = inventory.findIndex(item => item.id === skuId);
+                const itemIndex = inventory.findIndex(item => String(item.id).trim() === skuId);
 
-                if (itemIndex === -1) {
-                    alert('Item not found.');
+                if (itemIndex === -1 || skuId === "undefined") {
+                    alert(`Item mapping error. (SKU Target: ${skuId})`);
                     return;
                 }
 
@@ -152,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     "50"
                 );
 
-                if (qty === null) return; // Action cancelled
+                if (qty === null) return; 
 
                 const parsedQty = parseInt(qty, 10);
                 if (isNaN(parsedQty) || parsedQty <= 0) {
@@ -171,22 +185,22 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- DELETE BUTTON TRIGGER ---
             const deleteBtn = e.target.closest('.delete-btn');
             if (deleteBtn) {
-                const skuId = deleteBtn.dataset.id;
+                const skuId = String(deleteBtn.dataset.id).trim(); // 👈 Fixed: Cast explicitly to string
                 let inventory = JSON.parse(localStorage.getItem('inventory_table')) || [];
-                const targetItem = inventory.find(item => item.id === skuId);
+                const targetItem = inventory.find(item => String(item.id).trim() === skuId);
 
-                if (!targetItem) {
-                    alert('Item not found.');
+                if (!targetItem || skuId === "undefined") {
+                    alert(`Item could not be found. (SKU Target: ${skuId})`);
                     return;
                 }
 
                 const confirmed = confirm(
-                    `Are you sure you want to delete:\n\n${targetItem.name} (${targetItem.id}) ?`
+                    `Are you sure you want to delete:\n\n${targetItem.name || 'Unnamed'} (${targetItem.id}) ?`
                 );
 
-                if (!confirmed) return; // Action cancelled
+                if (!confirmed) return; 
 
-                inventory = inventory.filter(item => item.id !== skuId);
+                inventory = inventory.filter(item => String(item.id).trim() !== skuId);
                 localStorage.setItem('inventory_table', JSON.stringify(inventory));
                 renderInventoryBoard();
                 return;
@@ -195,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
-    // REGISTER NEW INVENTORY ITEM
+    // REGISTER NEW INVENTORY ITEM (FIXED FALLBACK VALUES)
     // =========================
     if (inventoryForm) {
         inventoryForm.addEventListener('submit', (e) => {
@@ -207,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let nextIdNumber = 1;
             if (inventory.length > 0) {
                 const ids = inventory
-                    .map(item => item.id ? parseInt(item.id.replace('INV-', ''), 10) : NaN)
+                    .map(item => item.id ? parseInt(String(item.id).replace('INV-', ''), 10) : NaN)
                     .filter(num => !isNaN(num));
 
                 if (ids.length > 0) {
@@ -218,12 +232,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const generatedSku = `INV-${String(nextIdNumber).padStart(3, '0')}`;
             const formData = new FormData(inventoryForm);
 
+            // 👈 SAFE FALLBACKS: If HTML fields are missing a name="" attribute, fallback on direct DOM fallback queries!
+            const nameVal = formData.get('name') || document.getElementById('sku-name')?.value;
+            const catVal = formData.get('category') || document.getElementById('sku-category')?.value;
+            const stockVal = formData.get('stock') || document.getElementById('sku-stock')?.value;
+            const minVal = formData.get('min_required') || document.getElementById('sku-min')?.value;
+            const costVal = formData.get('unit_cost') || document.getElementById('sku-cost')?.value;
+
             const newItem = {
                 id: generatedSku,
-                name: formData.get('name').trim(),
-                category: formData.get('category'),
-                stock: parseInt(formData.get('stock'), 10) || 0,
-                unit_cost: parseFloat(formData.get('unit_cost')) || 0,
+                name: nameVal ? String(nameVal).trim() : 'Unlabeled Stock Item',
+                category: catVal ? String(catVal).trim() : 'General',
+                stock: parseInt(stockVal, 10) || 0,
+                min_required: parseInt(minVal, 10) || 0, 
+                unit_cost: parseFloat(costVal) || 0,
                 last_updated: new Date().toLocaleDateString()
             };
 
@@ -245,18 +267,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================
     if (addStockBtn) {
         addStockBtn.addEventListener('click', () => {
-            stockModal.style.display = 'flex';
+            if (stockModal) stockModal.style.display = 'flex';
         });
     }
 
     if (closeStockModal) {
         closeStockModal.addEventListener('click', () => {
-            stockModal.style.display = 'none';
+            if (stockModal) stockModal.style.display = 'none';
         });
     }
 
     window.addEventListener('click', (e) => {
-        if (e.target === stockModal) {
+        if (stockModal && e.target === stockModal) {
             stockModal.style.display = 'none';
         }
     });

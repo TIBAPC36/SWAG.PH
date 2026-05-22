@@ -1,4 +1,4 @@
-// SWAGPH - Unified Authentication Logic Engine (Synchronized)
+// --- SWAGPH - Unified Authentication Logic Engine (Backend Synchronized) ---
 
 const loginForm = document.getElementById('login-form');
 const emailInput = document.getElementById('email');
@@ -15,22 +15,23 @@ function validateEmail(email) {
 }
 
 function updateButtonState() {
+  if (!emailInput || !passwordInput || !loginBtn) return;
   const email = emailInput.value.trim();
   const password = passwordInput.value;
   loginBtn.disabled = !(email.length >= 1 && password.length >= 1);
 }
 
 function showError(input, message) {
-  if (input === 'email') {
+  if (input === 'email' && emailError) {
     emailError.textContent = message;
-  } else if (input === 'password') {
+  } else if (input === 'password' && passwordError) {
     passwordError.textContent = message;
   }
 }
 
 function clearErrors() {
-  emailError.textContent = '';
-  passwordError.textContent = '';
+  if (emailError) emailError.textContent = '';
+  if (passwordError) passwordError.textContent = '';
   if (loginFailed) {
     loginFailed.textContent = '';
     loginFailed.style.display = 'none';
@@ -38,6 +39,7 @@ function clearErrors() {
 }
 
 function setAuthenticating(state) {
+  if (!loginBtn) return;
   if (state) {
     loginBtn.textContent = 'Authenticating...';
     loginBtn.disabled = true;
@@ -56,49 +58,22 @@ function shakeForm() {
   }
 }
 
-// MATCHING ENGINE RULE: Ensure we align with your registration baseline definitions
-function ensureUserTable() {
-  if (!localStorage.getItem('user_table')) {
-    const initialUsers = [
-      {
-        u_id: 'ADM001',
-        u_name: 'System Admin',
-        u_email: 'admin@swagph.com',
-        u_pass: 'Admin123',
-        u_role: 'ADMIN',
-        u_phone: 'N/A',
-        u_created: new Date().toLocaleDateString()
-      }
-    ];
-    localStorage.setItem('user_table', JSON.stringify(initialUsers));
-  }
-}
-
-function getUserTable() {
-  const stored = localStorage.getItem('user_table');
-  try {
-    return stored ? JSON.parse(stored) : [];
-  } catch (error) {
-    console.error('Failed to parse user_table from localStorage', error);
-    return [];
-  }
-}
-
-function saveSession(user) {
+// Save active session locally for dashboard use
+function saveSession(userRecord) {
   const currentSession = {
-    id: user.u_id,
-    name: user.u_name,
-    email: user.u_email,
-    role: user.u_role
+    id: userRecord.user_id,             // 👈 Maps perfectly to database response schema
+    name: userRecord.full_name,         // 👈 Maps perfectly to database response schema
+    email: userRecord.email.toLowerCase().trim(),
+    role: userRecord.role || 'CLIENT'   // 👈 Matches the exact nested role string ('ADMIN' / 'CLIENT')
   };
   localStorage.setItem('swag_session', JSON.stringify(currentSession));
 }
 
 function routeByRole(role) {
   if (role === 'ADMIN') {
-    window.location.href = 'admin.html';
+    window.location.href = 'admin.html';              // 👈 Correctly routes Admin users
   } else if (role === 'CLIENT') {
-    window.location.href = 'client-dashboard.html';
+    window.location.href = 'client-dashboard.html';   // 👈 Correctly routes Client users
   } else {
     const message = 'Critical System error: User account does not possess a valid security role.';
     if (loginFailed) {
@@ -111,24 +86,28 @@ function routeByRole(role) {
   }
 }
 
+// Form Operational Scope Initialization Guard
 if (loginForm) {
-  ensureUserTable();
 
-  emailInput.addEventListener('input', () => {
-    clearErrors();
-    const email = emailInput.value.trim();
-    if (email.length > 0 && !validateEmail(email)) {
-      showError('email', 'Enter a valid email.');
-    }
-    updateButtonState();
-  });
+  if (emailInput) {
+    emailInput.addEventListener('input', () => {
+      clearErrors();
+      const email = emailInput.value.trim();
+      if (email.length > 0 && !validateEmail(email)) {
+        showError('email', 'Enter a valid email.');
+      }
+      updateButtonState();
+    });
+  }
 
-  passwordInput.addEventListener('input', () => {
-    clearErrors();
-    updateButtonState();
-  });
+  if (passwordInput) {
+    passwordInput.addEventListener('input', () => {
+      clearErrors();
+      updateButtonState();
+    });
+  }
 
-  if (togglePassword) {
+  if (togglePassword && passwordInput) {
     let passwordVisible = false;
     togglePassword.addEventListener('click', () => {
       passwordVisible = !passwordVisible;
@@ -137,39 +116,57 @@ if (loginForm) {
     });
   }
 
-  loginForm.addEventListener('submit', (e) => {
+  loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearErrors();
     setAuthenticating(true);
 
-    const email = emailInput.value.trim().toLowerCase();
-    const password = passwordInput.value;
-    const userTable = getUserTable();
+    const enteredEmail = emailInput.value.trim().toLowerCase();
+    const enteredPassword = passwordInput.value;
 
-    // Matching exact field strings generated by your register logic controller
-    const matchedUser = userTable.find(user =>
-      user.u_email.toLowerCase() === email && user.u_pass === password
-    );
+    try {
+      // Send login credentials directly to your Node.js API server
+      const response = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: enteredEmail, password: enteredPassword })
+      });
 
-    setTimeout(() => {
-      if (!matchedUser) {
+      const data = await response.json();
+
+      if (response.ok) {
+        // Backend says OK -> Save database values into session and redirect!
+        saveSession(data.user);
+        routeByRole(data.user.role || 'CLIENT'); // 👈 Seamlessly triggers alignment check
+      } else {
+        // Backend returned a 401 or bad request error
+        const errorMsg = data.message || 'Invalid email address or access password credentials.';
         if (loginFailed) {
-          loginFailed.textContent = 'Invalid email address or access password credentials.';
+          loginFailed.textContent = errorMsg;
           loginFailed.style.display = 'block';
         } else {
-          alert('Invalid email address or access password credentials.');
+          alert(errorMsg);
         }
         shakeForm();
         setAuthenticating(false);
-        return;
       }
 
-      saveSession(matchedUser);
-      routeByRole(matchedUser.u_role);
-    }, 400);
+    } catch (error) {
+      console.error('Connection Error:', error);
+      const networkError = 'Could not connect to the backend server. Is server.js running?';
+      if (loginFailed) {
+        loginFailed.textContent = networkError;
+        loginFailed.style.display = 'block';
+      } else {
+        alert(networkError);
+      }
+      setAuthenticating(false);
+    }
   });
 
   updateButtonState();
 } else {
-  console.warn('Login form not found on this page.');
+  console.warn('Login form fields skipped. Operating on a non-authentication page container context.');
 }

@@ -1,79 +1,104 @@
-// SWAGPH - Registration Processing Engine
+// --- SWAGPH - Client Registration Control Engine (Backend Synchronized) ---
 
-document.addEventListener('DOMContentLoaded', () => {
-    const registerForm = document.getElementById('register-form');
-    const errorMsgDiv = document.getElementById('register-error');
+// ==========================================
+// UI & FORM SUBMISSION CONTROLLER
+// ==========================================
+const RegisterDOM = {
+  form: document.getElementById('register-form'),
+  nameInput: document.getElementById('reg-name'),
+  emailInput: document.getElementById('reg-email'),
+  phoneInput: document.getElementById('reg-phone'), // Optional field for UI
+  passInput: document.getElementById('reg-pass'),
+  errorDisplay: document.getElementById('register-error'),
+  submitBtn: document.querySelector('.btn-submit') || document.getElementById('register-btn'),
 
-    if (registerForm) {
-        registerForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            // Clear any old error alerts from previous attempts
-            if (errorMsgDiv) {
-                errorMsgDiv.textContent = '';
-                errorMsgDiv.style.display = 'none';
-            }
-
-            // 1. Extract form values matching register.html IDs
-            const name = document.getElementById('reg-name').value.trim();
-            const email = document.getElementById('reg-email').value.trim();
-            const phone = document.getElementById('reg-phone').value.trim();
-            const password = document.getElementById('reg-pass').value;
-
-            // 2. Fetch the central user table array (with fallback protection)
-            let userTable = [];
-            try {
-                const storedUsers = localStorage.getItem('user_table');
-                userTable = storedUsers ? JSON.parse(storedUsers) : [];
-            } catch (error) {
-                console.error("Error loading user records:", error);
-                userTable = [];
-            }
-
-            // 3. Duplicate Prevention Check
-            const emailExists = userTable.some(user => user.u_email.toLowerCase() === email.toLowerCase());
-            
-            if (emailExists) {
-                if (errorMsgDiv) {
-                    errorMsgDiv.textContent = "This email address is already registered inside our portal.";
-                    errorMsgDiv.style.display = 'block';
-                } else {
-                    alert("This email address is already registered inside our portal.");
-                }
-                return;
-            }
-
-            // 4. Build the structured user schema object to perfectly match your login engine rules
-            const uniqueID = 'CLI' + Math.floor(1000 + Math.random() * 9000); // Generates a dynamic profile ID like CLI7294
-            
-            const newUser = {
-                u_id: uniqueID,
-                u_name: name,
-                u_email: email,
-                u_pass: password,
-                u_role: 'CLIENT', // Default operational permission tier for new external signups
-                u_phone: phone,
-                u_created: new Date().toLocaleDateString()
-            };
-
-            // 5. Append new user object to array database and push to localStorage
-            userTable.push(newUser);
-            localStorage.setItem('user_table', JSON.stringify(userTable));
-
-            // Optional: Provide instant visual success confirmation
-            const submitBtn = registerForm.querySelector('.btn-submit');
-            if (submitBtn) {
-                submitBtn.textContent = "Account Created Successfully!";
-                submitBtn.style.backgroundColor = "#2ecc71";
-                submitBtn.disabled = true;
-            }
-
-            // Redirect user back to login view after a brief processing window
-            setTimeout(() => {
-                window.location.href = "login.html";
-            }, 1200);
-        });
-    } else {
-        console.warn("Registration form wrapper container element not detected.");
+  init() {
+    if (!this.form) {
+      console.warn('Registration form elements missing from current view.');
+      return;
     }
-});
+    this.setupEvents();
+  },
+
+  showError(message) {
+    if (this.errorDisplay) {
+      this.errorDisplay.textContent = message;
+      this.errorDisplay.style.display = 'block';
+    } else {
+      alert(message);
+    }
+  },
+
+  clearError() {
+    if (this.errorDisplay) {
+      this.errorDisplay.textContent = '';
+      this.errorDisplay.style.display = 'none';
+    }
+  },
+
+  setSubmitting(state) {
+    if (!this.submitBtn) return;
+    if (state) {
+      this.submitBtn.textContent = 'Creating Account...';
+      this.submitBtn.disabled = true;
+      this.submitBtn.style.opacity = '0.7';
+    } else {
+      this.submitBtn.textContent = 'Create Account';
+      this.submitBtn.disabled = false;
+      this.submitBtn.style.opacity = '1';
+    }
+  },
+
+  setupEvents() {
+    this.form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      this.clearError();
+
+      const name = this.nameInput.value.trim();
+      const email = this.emailInput.value.trim().toLowerCase();
+      const password = this.passInput.value;
+
+      if (!name || !email || !password) {
+        this.showError('Please fill out all mandatory fields.');
+        return;
+      }
+
+      this.setSubmitting(true);
+
+      try {
+        // Send registration request directly to your live Node.js API server
+        const response = await fetch('http://localhost:3000/api/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            fullName: name, // 👈 Matches 'fullName' expected in server.js
+            email: email,   // 👈 Matches 'email' expected in server.js
+            password: password // 👈 Matches 'password' expected in server.js
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // Server returned 201 Created successfully!
+          alert('Account created successfully! Redirecting to login window...');
+          window.location.href = 'login.html';
+        } else {
+          // Server returned an error (e.g., Email already registered)
+          this.showError(data.message || 'Registration failed. Please try again.');
+          this.setSubmitting(false);
+        }
+
+      } catch (error) {
+        console.error('Connection Error:', error);
+        this.showError('Could not connect to backend server. Is server.js running?');
+        this.setSubmitting(false);
+      }
+    });
+  }
+};
+
+// Initialize execution context once environment signals readiness
+document.addEventListener('DOMContentLoaded', () => RegisterDOM.init());

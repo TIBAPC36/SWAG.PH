@@ -4,26 +4,41 @@
  */
 (function() {
     const activeSession = localStorage.getItem('swag_session');
-    const currentPath = window.location.pathname;
+    const currentPath = window.location.pathname.toLowerCase();
 
-    // 1. Absolute Block: Kick user out if no session token exists at all
+    // 1. Define public access screens that do NOT require an active session token
+    const publicPages = ['login.html', 'register.html', 'forgot-password.html'];
+    const isPublicPage = publicPages.some(page => currentPath.endsWith(page));
+
+    // 2. Absolute Block: Kick unauthenticated users out if trying to access private dashboard pages
     if (!activeSession) {
-        alert("Access Denied: Please sign in to authenticate your session.");
-        window.location.href = "login.html";
-        return;
+        if (!isPublicPage) {
+            alert("Access Denied: Please sign in to authenticate your session.");
+            window.location.href = "login.html";
+        }
+        return; // Stop execution thread safely for public views
     }
 
     try {
         const user = JSON.parse(activeSession);
 
-        // 2. Role-Based Clearance Authorization Guard
-        if (currentPath.includes('admin.html') && user.role !== 'ADMIN') {
-            alert(`Access Denied: Account ${user.id} does not possess ADMIN clearance levels.`);
+        // 3. Auto-Redirect if authenticated users intentionally try to open the login or registration forms
+        if (isPublicPage) {
+            if (user.role === 'ADMIN') {
+                window.location.href = "admin.html";
+            } else {
+                window.location.href = "client-dashboard.html";
+            }
+            return;
+        }
+
+        // 4. Role-Based Clearance Authorization Guard Tiers
+        if (currentPath.includes('admin') && user.role !== 'ADMIN') {
+            alert(`Access Denied: Account ${user.email || 'User'} does not possess ADMIN clearance levels.`);
             window.location.href = "client-dashboard.html";
         } 
-        
-        else if (currentPath.includes('client-dashboard.html') && user.role !== 'CLIENT') {
-            // If an Admin accidentally wanders to the client portal, redirect them back to base camp
+        else if ((currentPath.includes('client-') || currentPath.includes('profile')) && user.role !== 'CLIENT') {
+            // If an Admin wanders to the client portal components, redirect them back to administrative control views
             window.location.href = "admin.html";
         }
     } catch (error) {

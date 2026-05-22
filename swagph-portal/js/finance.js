@@ -1,5 +1,5 @@
 /**
- * SWAGPH - Enterprise Resource Planning (ERP) Finance Controller
+ * ERP Finance Controller
  * Interlocks sales invoices and operational expenses to map overall cash flows
  */
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,8 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Initialize Seed Operating Expenses Database if completely empty
     if (!localStorage.getItem('expense_table')) {
         const initialExpenses = [
-            { id: "EXP-001", date: new Date().toLocaleDateString(), description: "Workshop Monthly Electricity & Power Utility", category: "Overhead", amount: 4850.00 },
-            { id: "EXP-002", date: new Date().toLocaleDateString(), description: "Social Media Advertisement Marketing Batch Runs", category: "Marketing", amount: 2500.00 }
+            { id: "EXP-001", date: new Date().toISOString(), description: "Workshop Monthly Electricity & Power Utility", category: "Overhead", amount: 4850.00 },
+            { id: "EXP-002", date: new Date().toISOString(), description: "Social Media Advertisement Marketing Batch Runs", category: "Marketing", amount: 2500.00 }
         ];
         localStorage.setItem('expense_table', JSON.stringify(initialExpenses));
     }
@@ -33,7 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- CORE FINANCIAL STATEMENT CONSOLIDATOR ---
     function renderFinanceLedger() {
-        // Retrieve records from database tables
+        if (!tableBody) return; // Guard clause to protect script if table isn't on this page
+
         const orders = JSON.parse(localStorage.getItem('order_table')) || [];
         const expenses = JSON.parse(localStorage.getItem('expense_table')) || [];
         
@@ -48,8 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             ledgerEntries.push({
                 refId: `REV-${order.o_no}`,
-                date: order.o_date,
-                description: `Invoice Fulfillment Payment (Client ID: ${order.o_custid})`,
+                date: order.o_date, 
+                description: `Invoice Fulfillment Payment (Client: ${order.o_custid || 'Walk-in'})`,
                 type: 'INCOME',
                 value: orderValue
             });
@@ -63,14 +64,18 @@ document.addEventListener('DOMContentLoaded', () => {
             ledgerEntries.push({
                 refId: exp.id,
                 date: exp.date,
-                description: `[${exp.category}] ${exp.description}`,
+                description: `[${exp.category || 'General'}] ${exp.description || 'Uncategorized Expense'}`,
                 type: 'EXPENSE',
                 value: expenseValue
             });
         });
 
-        // 3. Sort Ledger Chronologically (Most Recent Postings on Top)
-        ledgerEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
+        // 3. Sort Ledger Chronologically (Most Recent Postings on Top) with fallback protection
+        ledgerEntries.sort((a, b) => {
+            const timeA = new Date(a.date).getTime() || 0;
+            const timeB = new Date(b.date).getTime() || 0;
+            return timeB - timeA;
+        });
 
         // Clear and Draw Ledger Rows
         tableBody.innerHTML = '';
@@ -83,9 +88,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const isIncome = entry.type === 'INCOME';
             const tr = document.createElement('tr');
             
+            // Validate the date evaluation before formatting to avoid 'Invalid Date' runtime displays
+            const parsedDate = new Date(entry.date);
+            const displayDate = !isNaN(parsedDate.getTime()) 
+                ? parsedDate.toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' })
+                : entry.date || 'N/A';
+
             tr.innerHTML = `
                 <td><small style="font-family: monospace; font-weight:700; background:#f1f5f9; padding:2px 6px; border-radius:4px;">${entry.refId}</small></td>
-                <td>${entry.date}</td>
+                <td>${displayDate}</td>
                 <td style="color: #334155; font-weight: 500;">${entry.description}</td>
                 <td><span class="${isIncome ? 'badge-income' : 'badge-expense'}">${entry.type}</span></td>
                 <td class="text-right ${isIncome ? 'ledger-inflow' : 'ledger-outflow'}">
@@ -102,44 +113,58 @@ document.addEventListener('DOMContentLoaded', () => {
         if (expensesEl) expensesEl.innerText = `₱${totalExpenses.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
         if (profitEl) {
             profitEl.innerText = `₱${netProfit.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
-            // Color target shift depending on positive return status
             profitEl.style.color = netProfit >= 0 ? '#16a34a' : '#dc2626';
         }
     }
 
     // --- MANUAL OPERATION EXPENSE POSTING HANDLER ---
-    expenseForm.addEventListener('submit', (e) => {
-        e.preventDefault();
+    if (expenseForm) {
+        expenseForm.addEventListener('submit', (e) => {
+            e.preventDefault();
 
-        let expenses = JSON.parse(localStorage.getItem('expense_table')) || [];
-        
-        // Automated entry code counter sequences
-        const nextIdNumber = expenses.length + 1;
-        const generatedExpId = `EXP-${String(nextIdNumber).padStart(3, '0')}`;
+            let expenses = JSON.parse(localStorage.getItem('expense_table')) || [];
+            
+            // Safe Max ID Generation
+            const maxId = expenses.reduce((max, exp) => {
+                const num = parseInt(String(exp.id).replace('EXP-', ''), 10);
+                return !isNaN(num) && num > max ? num : max;
+            }, 0);
+            const generatedExpId = `EXP-${String(maxId + 1).padStart(3, '0')}`;
 
-        const formData = new FormData(expenseForm);
-        const newExpense = {
-            id: generatedExpId,
-            date: new Date().toLocaleDateString(),
-            description: formData.get('description').trim(),
-            category: formData.get('category'),
-            amount: parseFloat(formData.get('amount')) || 0
-        };
+            const formData = new FormData(expenseForm);
+            const descVal = formData.get('description');
+            const catVal = formData.get('category');
+            const amtVal = formData.get('amount');
 
-        expenses.push(newExpense);
-        localStorage.setItem('expense_table', JSON.stringify(expenses));
+            const newExpense = {
+                id: generatedExpId,
+                date: new Date().toISOString(), 
+                description: descVal ? descVal.trim() : '',
+                category: catVal || 'General',
+                amount: parseFloat(amtVal) || 0
+            };
 
-        expenseForm.reset();
-        expenseModal.style.display = 'none';
-        renderFinanceLedger();
-    });
+            expenses.push(newExpense);
+            localStorage.setItem('expense_table', JSON.stringify(expenses));
 
-    // --- MODAL BACKDROP LAYER TOGGLE LISTENERS ---
-    addExpenseBtn.addEventListener('click', () => expenseModal.style.display = 'flex');
-    closeExpenseModal.addEventListener('click', () => expenseModal.style.display = 'none');
-    window.addEventListener('click', (e) => {
-        if (e.target === expenseModal) expenseModal.style.display = 'none';
-    });
+            expenseForm.reset();
+            if (expenseModal) expenseModal.style.display = 'none';
+            renderFinanceLedger();
+        });
+    }
+
+    // --- MODAL TOGGLE LISTENERS WITH ELEMENT GUARDS ---
+    if (addExpenseBtn && expenseModal) {
+        addExpenseBtn.addEventListener('click', () => expenseModal.style.display = 'flex');
+    }
+    if (closeExpenseModal && expenseModal) {
+        closeExpenseModal.addEventListener('click', () => expenseModal.style.display = 'none');
+    }
+    if (expenseModal) {
+        window.addEventListener('click', (e) => {
+            if (e.target === expenseModal) expenseModal.style.display = 'none';
+        });
+    }
 
     // Fire Initial Array Calculations Execution
     renderFinanceLedger();
